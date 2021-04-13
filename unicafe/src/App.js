@@ -87,8 +87,6 @@ const App = () => {
 			<Button text='bad' handleButton={increaseBad}/>
 			<h1>statistics</h1>
 			<Statistics good={good} neutral={neutral} bad={bad} all={all}/>
-			
-			
     </div>
   )
 }
