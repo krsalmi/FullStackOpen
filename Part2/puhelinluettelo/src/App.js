@@ -1,69 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import phoneService from './services/persons'
-
-
-const PersonForm = ({newName, setNewName, setNewNumber}) => {
-	const handleNameChange = (event) => {
-		setNewName(event.target.value)
-	}
-	const handleNumberChange = (event) => {
-		setNewNumber(event.target.value)
-	}
-	return (
-		<>
-		<h2>add a new</h2>
-			<div>
-					name: <input value={newName} onChange={handleNameChange}/>
-			</div>
-			<div>
-			number: <input onChange={handleNumberChange}/>
-			</div>
-			<div>
-          <button type="submit">add</button>
-        </div>
-		</>
-	)
-}
-
-const ShowPerson = ({name, number, id, deletePerson}) => {
-	return (
-		<div>
-			{name} {number}<button onClick={() => 
-				deletePerson(id, name)
-					}>delete</button>
-		</div>
-	)}
-
-const ShowPeople = ({filtered, deletePerson}) => {
-	return (
-		<div>
-			{filtered.map(person =>
-				<ShowPerson key={person.name} name={person.name} number={person.number} id={person.id} deletePerson={deletePerson}/>
-			)}
-		</div>
-	)
-}
-
-const FilterPeople = ({setFilter, persons}) => {
-	const filterNames = (event) => {
-		if (event.target.value !== '')
-			setFilter(persons.filter(person => 
-				person.name.toLowerCase().includes(event.target.value.toLowerCase())))
-		else
-				setFilter(persons)
-		}
-	return (
-	<div>
-          filter shown with <input onChange={filterNames}/>
-  </div>
-	)
-}
+import PersonForm from './components/PersonForm'
+import Notification from './components/Notification'
+import Error from './components/Error'
+import ShowPeople from './components/ShowPeople'
+import FilterPeople from './components/FilterPeople'
 
 const App = () => {
   const [ persons, setPersons] = useState([]) 
   const [ newName, setNewName ] = useState('')
 	const [ newNumber, setNewNumber ] = useState('')
 	const [ filtered, setFilter ] = useState(persons)
+	const [ message, setMessage] = useState(null)
+	const [ errorMessage, setErrorMessage] = useState(null)
 
 	useEffect(() => {
     
@@ -83,6 +32,20 @@ const App = () => {
 				const reducedList = persons.filter(person => person.id !== id)
 				setFilter(reducedList)
 				setPersons(reducedList)
+				setMessage(
+					`Deleted ${name}`
+				)
+				setTimeout(() => {
+					setMessage(null)
+				}, 5000)
+			})
+			.catch(error => {
+				setErrorMessage(
+          `Information of ${name} was already removed from server`
+        )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
 			})
 		}
 	}
@@ -104,8 +67,22 @@ const App = () => {
 					.then(returnedPerson => {
 						setPersons(persons.map(p => p.name !== newName ? p : returnedPerson))
 						setFilter(persons.map(p => p.name !== newName ? p : returnedPerson))
+						setMessage(
+							`Updated ${newName}'s number`
+						)
+						setTimeout(() => {
+							setMessage(null)
+						}, 5000)
 					})
-				}
+					.catch(error => {
+						setErrorMessage(
+							`Information of ${newName} was already removed from server`
+						)
+						setTimeout(() => {
+							setErrorMessage(null)
+						}, 5000)
+				})
+			}
 		}else {
 			// const addedPeople = persons.concat(phoneBookObject)
 			phoneService
@@ -114,6 +91,12 @@ const App = () => {
 					const addedPeople = persons.concat(phoneBookObject)
 					setPersons(addedPeople)
 					setFilter(addedPeople)
+					setMessage(
+						`Added ${newName}`
+					)
+					setTimeout(() => {
+						setMessage(null)
+					}, 5000)
 				})
 		}
 	}
@@ -121,6 +104,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+			<Notification message={message} />
+			<Error errorMessage={errorMessage} />
       <form onSubmit={addPerson}>
 				<FilterPeople setFilter={setFilter} persons={persons}/>
         <PersonForm newName={newName} setNewName={setNewName} setNewNumber={setNewNumber}/>
